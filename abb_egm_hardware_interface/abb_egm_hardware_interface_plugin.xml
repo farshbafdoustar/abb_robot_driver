@@ -1,0 +1,8 @@
+<library path="lib/libabb_egm_hardware_interface_hardware_interface">
+  <class name="abb_egm_hardware_interface/EGMHardwareInterface" type="abb::robot::EGMHardwareInterface" base_class_type="hardware_interface::RobotHW">
+    <description>
+      Interface for ABB EGM
+    </description>
+  </class>
+</library>
+  

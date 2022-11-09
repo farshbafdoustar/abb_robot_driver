@@ -150,6 +150,14 @@ private:
      */
     std::string mech_unit_group;
   };
+  /**
+   * \brief get the robot contoller description by calling a ROS service to get the description in text format.
+   *
+   * \param nh for the node handle to use when calling the ROS service.
+   *
+   * \return bool true if the initialization succeeded.
+   */
+  bool getRobotControllerDescription(ros::NodeHandle& nh);
 
   /**
    * \brief Initializes the robot contoller description by calling a ROS service to get the description in text format.
@@ -273,7 +281,7 @@ private:
   std::vector<std::string> controllers_always_ok_to_start_;
 };
 
-}
-}
+}  // namespace robot
+}  // namespace abb
 
 #endif

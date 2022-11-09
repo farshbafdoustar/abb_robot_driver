@@ -244,3 +244,6 @@ install(
   DIRECTORY config launch
   DESTINATION "${CATKIN_PACKAGE_SHARE_DESTINATION}"
 )
+install(FILES abb_egm_hardware_interface_plugin.xml
+  DESTINATION "${CATKIN_PACKAGE_SHARE_DESTINATION}")
+
