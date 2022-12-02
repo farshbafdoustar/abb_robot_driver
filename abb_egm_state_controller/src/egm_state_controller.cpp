@@ -47,8 +47,8 @@ namespace
 /**
  * \brief Name for ROS logging in the 'init' context.
  */
-constexpr char ROS_LOG_INIT[]{"init"};
-}
+constexpr char ROS_LOG_INIT[]{ "init" };
+}  // namespace
 
 namespace abb
 {
@@ -68,24 +68,24 @@ bool EGMStateController::init(EGMStateInterface* p_hw, ros::NodeHandle& root_nh,
   //--------------------------------------------------------
   // Verify the hardware interface
   //--------------------------------------------------------
-  if(!p_hw)
+  if (!p_hw)
   {
     ROS_FATAL_STREAM_NAMED(ROS_LOG_INIT, "Hardware interface has not been not allocated");
     return false;
   }
 
   // Verify that the interface have one or more resources.
-  if(p_hw->getNames().size() >= 1)
+  if (p_hw->getNames().size() >= 1)
   {
     try
     {
       // Get the handles (throws an exception on failure).
-      for(const auto& name : p_hw->getNames())
+      for (const auto& name : p_hw->getNames())
       {
         egm_state_handles_.push_back(p_hw->getHandle(name));
       }
     }
-    catch(...)
+    catch (...)
     {
       ROS_FATAL_STREAM_NAMED(ROS_LOG_INIT, "Failed to get resource handles from hardware interface");
       return false;
@@ -102,12 +102,12 @@ bool EGMStateController::init(EGMStateInterface* p_hw, ros::NodeHandle& root_nh,
   //--------------------------------------------------------
   try
   {
-    double publish_rate{DEFAULT_PUBLISH_RATE};
+    double publish_rate{ DEFAULT_PUBLISH_RATE };
     utilities::getParameter(controller_nh, "publish_rate", publish_rate, DEFAULT_PUBLISH_RATE);
     utilities::verifyRate(publish_rate);
-    publish_period_ = ros::Duration(1.0/publish_rate);
+    publish_period_ = ros::Duration(1.0 / publish_rate);
   }
-  catch(...)
+  catch (...)
   {
     return false;
   }
@@ -118,9 +118,9 @@ bool EGMStateController::init(EGMStateInterface* p_hw, ros::NodeHandle& root_nh,
   p_egm_state_publisher_.reset(new EGMStatePublisher(root_nh, "egm_states", 1));
 
   // Allocate ROS messages.
-  for(const auto& handle : egm_state_handles_)
+  for (const auto& handle : egm_state_handles_)
   {
-    auto p_data{handle.getEGMChannelDataPtr()};
+    auto p_data{ handle.getEGMChannelDataPtr() };
 
     abb_egm_msgs::EGMChannelState channel{};
 
@@ -134,6 +134,17 @@ bool EGMStateController::init(EGMStateInterface* p_hw, ros::NodeHandle& root_nh,
     channel.motor_state = utilities::map(p_data->input.status().motor_state());
     channel.rapid_execution_state = utilities::map(p_data->input.status().rapid_execution_state());
     channel.utilization_rate = p_data->input.status().utilization_rate();
+    channel.cartesian_pose.trans.x = p_data->input.feedback().robot().cartesian().pose().position().x();
+    channel.cartesian_pose.trans.y = p_data->input.feedback().robot().cartesian().pose().position().y();
+    channel.cartesian_pose.trans.z = p_data->input.feedback().robot().cartesian().pose().position().z();
+    channel.cartesian_pose.rot.q1 = p_data->input.feedback().robot().cartesian().pose().quaternion().u1();
+    channel.cartesian_pose.rot.q2 = p_data->input.feedback().robot().cartesian().pose().quaternion().u2();
+    channel.cartesian_pose.rot.q3 = p_data->input.feedback().robot().cartesian().pose().quaternion().u3();
+    channel.cartesian_pose.rot.q4 = p_data->input.feedback().robot().cartesian().pose().quaternion().u0();
+
+    channel.joints_state = std::vector<double>(p_data->input.feedback().robot().joints().position().values().begin(),
+                                               p_data->input.feedback().robot().joints().position().values().end());
+    ;
 
     p_egm_state_publisher_->msg_.egm_channels.push_back(channel);
   }
@@ -141,29 +152,32 @@ bool EGMStateController::init(EGMStateInterface* p_hw, ros::NodeHandle& root_nh,
   return true;
 }
 
-void EGMStateController::starting(const ros::Time& time) { last_publish_time_ = time; }
+void EGMStateController::starting(const ros::Time& time)
+{
+  last_publish_time_ = time;
+}
 
 void EGMStateController::update(const ros::Time& time, const ros::Duration& period)
 {
-  (void) period;
+  (void)period;
 
-  if(last_publish_time_ + publish_period_ < time)
+  if (last_publish_time_ + publish_period_ < time)
   {
     last_publish_time_ += publish_period_;
 
     //------------------------------------------------------
     // Try to publish EGM state
     //------------------------------------------------------
-    if(p_egm_state_publisher_->trylock())
+    if (p_egm_state_publisher_->trylock())
     {
       p_egm_state_publisher_->msg_.header.stamp = time;
 
-      for(size_t i = 0; i < egm_state_handles_.size() && i < p_egm_state_publisher_->msg_.egm_channels.size(); ++i)
+      for (size_t i = 0; i < egm_state_handles_.size() && i < p_egm_state_publisher_->msg_.egm_channels.size(); ++i)
       {
-        auto p_data{egm_state_handles_[i].getEGMChannelDataPtr()};
+        auto p_data{ egm_state_handles_[i].getEGMChannelDataPtr() };
 
         // Status information.
-        auto& channel{p_egm_state_publisher_->msg_.egm_channels[i]};
+        auto& channel{ p_egm_state_publisher_->msg_.egm_channels[i] };
         channel.active = p_data->is_active;
 
         // Status information.
@@ -179,9 +193,12 @@ void EGMStateController::update(const ros::Time& time, const ros::Duration& peri
   }
 }
 
-void EGMStateController::stopping(const ros::Time& time) { (void) time; }
+void EGMStateController::stopping(const ros::Time& time)
+{
+  (void)time;
+}
 
-}
-}
+}  // namespace robot
+}  // namespace abb
 
 PLUGINLIB_EXPORT_CLASS(abb::robot::EGMStateController, controller_interface::ControllerBase)
