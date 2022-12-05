@@ -144,7 +144,6 @@ bool EGMStateController::init(EGMStateInterface* p_hw, ros::NodeHandle& root_nh,
 
     channel.joints_state = std::vector<double>(p_data->input.feedback().robot().joints().position().values().begin(),
                                                p_data->input.feedback().robot().joints().position().values().end());
-    ;
 
     p_egm_state_publisher_->msg_.egm_channels.push_back(channel);
   }
@@ -186,6 +185,17 @@ void EGMStateController::update(const ros::Time& time, const ros::Duration& peri
         channel.motor_state = utilities::map(p_data->input.status().motor_state());
         channel.rapid_execution_state = utilities::map(p_data->input.status().rapid_execution_state());
         channel.utilization_rate = p_data->input.status().utilization_rate();
+        channel.cartesian_pose.trans.x = p_data->input.feedback().robot().cartesian().pose().position().x();
+        channel.cartesian_pose.trans.y = p_data->input.feedback().robot().cartesian().pose().position().y();
+        channel.cartesian_pose.trans.z = p_data->input.feedback().robot().cartesian().pose().position().z();
+        channel.cartesian_pose.rot.q1 = p_data->input.feedback().robot().cartesian().pose().quaternion().u1();
+        channel.cartesian_pose.rot.q2 = p_data->input.feedback().robot().cartesian().pose().quaternion().u2();
+        channel.cartesian_pose.rot.q3 = p_data->input.feedback().robot().cartesian().pose().quaternion().u3();
+        channel.cartesian_pose.rot.q4 = p_data->input.feedback().robot().cartesian().pose().quaternion().u0();
+
+        channel.joints_state =
+            std::vector<double>(p_data->input.feedback().robot().joints().position().values().begin(),
+                                p_data->input.feedback().robot().joints().position().values().end());
       }
 
       p_egm_state_publisher_->unlockAndPublish();
