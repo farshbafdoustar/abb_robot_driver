@@ -141,7 +141,9 @@ bool EGMStateController::init(EGMStateInterface* p_hw, ros::NodeHandle& root_nh,
     channel.cartesian_pose.rot.q2 = p_data->input.feedback().robot().cartesian().pose().quaternion().u2();
     channel.cartesian_pose.rot.q3 = p_data->input.feedback().robot().cartesian().pose().quaternion().u3();
     channel.cartesian_pose.rot.q4 = p_data->input.feedback().robot().cartesian().pose().quaternion().u0();
-
+    channel.time = ros::Time(p_data->input.feedback().time().sec(), p_data->input.feedback().time().usec());
+    channel.time_stamp_ms = p_data->input.header().time_stamp();
+    channel.sequence_number = p_data->input.header().sequence_number();
     channel.joints_state = std::vector<double>(p_data->input.feedback().robot().joints().position().values().begin(),
                                                p_data->input.feedback().robot().joints().position().values().end());
 
@@ -192,10 +194,12 @@ void EGMStateController::update(const ros::Time& time, const ros::Duration& peri
         channel.cartesian_pose.rot.q2 = p_data->input.feedback().robot().cartesian().pose().quaternion().u2();
         channel.cartesian_pose.rot.q3 = p_data->input.feedback().robot().cartesian().pose().quaternion().u3();
         channel.cartesian_pose.rot.q4 = p_data->input.feedback().robot().cartesian().pose().quaternion().u0();
-
-        channel.joints_state =
-            std::vector<double>(p_data->input.feedback().robot().joints().position().values().begin(),
-                                p_data->input.feedback().robot().joints().position().values().end());
+        channel.time = ros::Time(p_data->input.feedback().time().sec(), p_data->input.feedback().time().usec());
+        channel.time_stamp_ms = p_data->input.header().time_stamp();
+        channel.sequence_number = p_data->input.header().sequence_number();
+        channel.joints_state = 
+        std::vector<double>(p_data->input.feedback().robot().joints().position().values().begin(),
+                            p_data->input.feedback().robot().joints().position().values().end());
       }
 
       p_egm_state_publisher_->unlockAndPublish();
