@@ -82,6 +82,16 @@ public:
    */
   bool init(ros::NodeHandle& root_nh, ros::NodeHandle& robot_hw_nh);
 
+  /** Check (in non-realtime) if the given set of controllers is allowed
+   * to run simultaneously.
+   *
+   * If the provided controller is already in controllers_always_ok_to_start , it will not be refused
+   * even if it has resource conflicts. These are removed from the list and new list is passed to
+   * default checker taht simply checks if any two controllers use the
+   * same resource.
+   */
+  bool checkForConflict(const std::list<hardware_interface::ControllerInfo>& info) const;
+
   /**
    * \brief Prepares (in non-realtime) to start and stop (ros_control) controllers.
    *

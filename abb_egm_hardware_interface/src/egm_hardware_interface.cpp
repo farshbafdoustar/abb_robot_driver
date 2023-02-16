@@ -286,6 +286,27 @@ void EGMHardwareInterface::write(const ros::Time& time, const ros::Duration& per
 /***********************************************************
  * Auxiliary methods (public)
  */
+bool EGMHardwareInterface::checkForConflict(const std::list<hardware_interface::ControllerInfo>& info) const
+{
+  std::list<hardware_interface::ControllerInfo> not_listed_controllers;
+  std::size_t counter{ 0 };
+  std::stringstream ss{};
+  ss << "[";
+  for (const auto& controller_info : info)
+  {
+    ss << controller_info.name << (++counter < info.size() ? ", " : "]");
+
+    const auto it =
+        std::find(controllers_always_ok_to_start_.begin(), controllers_always_ok_to_start_.end(), controller_info.name);
+
+    if (it == controllers_always_ok_to_start_.end())
+    {
+      not_listed_controllers.push_back(controller_info);
+    }
+  }
+
+  return hardware_interface::RobotHW::checkForConflict(not_listed_controllers);
+}
 
 bool EGMHardwareInterface::prepareSwitch(const std::list<hardware_interface::ControllerInfo>& start_list,
                                          const std::list<hardware_interface::ControllerInfo>& stop_list)
